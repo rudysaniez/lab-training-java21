@@ -1,8 +1,13 @@
 package com.adeo.lab.java21.fire;
 
+import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Sinks;
+
+import java.util.DoubleSummaryStatistics;
 import java.util.Objects;
 import java.util.SplittableRandom;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import static java.util.FormatProcessor.FMT;
 
@@ -23,6 +28,12 @@ public class DataOrientedProgrammingWorkshopSolution {
 
     public static void main(String[] args) throws Exception {
 
+        // Observer: When a payment has been made, I enter it in the console.
+        NetworkSimulation.paymentsSink.asFlux()
+                .subscribe(p -> System.out.println(STR."""
+                    >>> A payment has been done : \{p}
+                """));
+
         // By Cash
         Future<PaymentResult> cashPaymentResult = payment(new Cash(38.3f));
         System.out.println(FMT."""
@@ -41,6 +52,18 @@ public class DataOrientedProgrammingWorkshopSolution {
                     >> The payment by Paypal is \{ PayPalPaymentResult.get().status().name() }
                 """);
 
+        // The sum for today
+        DoubleSummaryStatistics stats = NetworkSimulation.payments
+                        .stream()
+                        .collect(Collectors.summarizingDouble(PaymentResult::amount));
+
+        System.out.println(STR."""
+                >> The total amount is \{stats.getSum()}
+                >> The number of payment is \{stats.getCount()}
+                >> The payment max is \{stats.getMax()}
+                >> The payment min is \{stats.getMin()}
+                """);
+
         NetworkSimulation.scheduled.close();
     }
 
@@ -48,7 +71,7 @@ public class DataOrientedProgrammingWorkshopSolution {
      * @param paymentSystem : the payment system
      * @return {@link Future<PaymentResult>}
      */
-    static Future<PaymentResult> payment(PaymentSystem paymentSystem) {
+    static Future<PaymentResult> payment(@NotNull PaymentSystem paymentSystem) {
 
         return switch(paymentSystem) {
             case Cash(float amount) -> NetworkSimulation.run(paymentSystem, amount);
@@ -78,7 +101,7 @@ public class DataOrientedProgrammingWorkshopSolution {
      */
     record PayPal(float amount) implements PaymentSystem {}
 
-    record PaymentResult(PaymentStatus status) {
+    record PaymentResult(PaymentStatus status, float amount) {
 
         PaymentResult {
             Objects.requireNonNull(status);
@@ -94,10 +117,15 @@ public class DataOrientedProgrammingWorkshopSolution {
         PaymentStatus() {}
     }
 
+    /*
+    The network simulation component.
+     */
     static class NetworkSimulation {
 
         final static ScheduledExecutorService scheduled = Executors.newScheduledThreadPool(1);
         final static SplittableRandom random = new SplittableRandom();
+        final static CopyOnWriteArrayList<PaymentResult> payments = new CopyOnWriteArrayList<>();
+        final static Sinks.Many<PaymentResult> paymentsSink = Sinks.many().unicast().onBackpressureBuffer();
 
         /**
          * @param paymentSystem : the payment system
@@ -111,7 +139,12 @@ public class DataOrientedProgrammingWorkshopSolution {
                     """
                     );
 
-            Callable<PaymentResult> runPayment = () -> new PaymentResult(PaymentStatus.OK);
+            Callable<PaymentResult> runPayment = () -> {
+                var p = new PaymentResult(PaymentStatus.OK, amount);
+                payments.add(p);
+                paymentsSink.tryEmitNext(p);
+                return p;
+            };
 
             return switch (paymentSystem) {
                 case Cash cash -> scheduled.schedule(runPayment, random.nextInt(1, 3), TimeUnit.SECONDS);
