@@ -20,6 +20,11 @@ public class DataOrientedProgrammingWorkshop {
 
     public static void main(String[] args) throws Exception {
 
+        /*
+        Hey man, you've got the latest version of Reactor, and you've got the Sink function.
+        So you can tell me when a payment has been made, right?
+         */
+
         // By Cash
         Future<PaymentResult> cashPaymentResult = new Cash().payment(38.3f);
         var paymentResult = cashPaymentResult.get();
@@ -43,6 +48,11 @@ public class DataOrientedProgrammingWorkshop {
                     >> The payment by Paypal is %s
                 """,
                 paymentResult.getStatus().name());
+
+        /*
+        You have to add the total, when can you add this function, please!
+        You're working with Java 21, you've got the stream and the collect operator ...
+         */
 
         System.exit(0); //FIXME: Need to understand why i must to specify an exist...
     }
@@ -97,6 +107,9 @@ public class DataOrientedProgrammingWorkshop {
         PaymentStatus() {}
     }
 
+    /*
+    The network simulation component.
+     */
     static class NetworkSimulation {
 
         final static ScheduledExecutorService scheduled = Executors.newScheduledThreadPool(1);
