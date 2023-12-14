@@ -97,6 +97,9 @@ public class DataOrientedProgrammingWorkshop {
         }
     }
 
+    /*
+    Need the amount... no ?
+     */
     static class PaymentResult {
         PaymentStatus status;
 
