@@ -15,6 +15,9 @@ import java.util.concurrent.*;
  * If you want to do that, you need to activate the preview features in Java 21.
  * You can also use the FormatProcessor, java.util.FormatProcessor, like this println(FMT.""" My value is %d\{ data.getValue() } """).
  * Now, it's time for me to tell you, good luck !
+ * <a href="https://docs.oracle.com/en/java/javase/20/language/sealed-classes-and-interfaces.html#GUID-0C709461-CC33-419A-82BF-61461336E65F">Sealed classes</a>
+ * <a href="https://docs.oracle.com/en/java/javase/20/language/record-patterns.html#GUID-7623D3AD-4141-4914-A384-60C65BD0C010">Record patterns</a>
+ * <a href="https://docs.oracle.com/en/java/javase/20/language/switch-expressions.html#GUID-BA4F63E3-4823-43C6-A5F3-BAA4A2EF3ADC">Switch expression</a>
  */
 public class DataOrientedProgrammingWorkshop {
 
@@ -94,6 +97,9 @@ public class DataOrientedProgrammingWorkshop {
         }
     }
 
+    /*
+    Need the amount... no ?
+     */
     static class PaymentResult {
         PaymentStatus status;
 
